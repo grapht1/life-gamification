@@ -1,0 +1,25 @@
+# Edit `app` to a globally-unique name before deploying (or drop the line
+# and let `fly launch --copy-config` assign one interactively).
+app = "life-gamification"
+primary_region = "iad"
+
+[build]
+
+[env]
+  DB_PATH = "/data/data.sqlite"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[mounts]
+  source = "life_gamification_data"
+  destination = "/data"

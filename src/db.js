@@ -28,6 +28,28 @@ db.exec(`
     longest_streak INTEGER NOT NULL DEFAULT 0,
     last_completed_date TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS quests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    action_id INTEGER REFERENCES actions(id),
+    target_count INTEGER NOT NULL,
+    xp_reward INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    completed_at TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS earned_badges (
+    badge_id TEXT PRIMARY KEY,
+    earned_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS bonus_xp (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source TEXT NOT NULL,
+    xp INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 module.exports = db;

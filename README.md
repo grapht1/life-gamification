@@ -28,6 +28,26 @@ See [Deployment](#deployment) below for a Docker-based path.
   updates the streak, returns updated level/XP/streak. Logging the same
   action twice in one day is a no-op (no double XP).
 - `GET /api/stats` — current level, XP progress, and streak per action
+- `POST /api/quests` — define a one-off goal: `{ "name": "Read 5 books", "targetCount": 5, "xpReward": 100, "action": "read" }` (omit `action` to count completions of any habit)
+- `GET /api/quests` — list quests with current progress and completion status
+- `GET /api/badges` — list the badge catalog and which you've earned
+
+## Badges & quests
+
+**Badges** are automatic, predefined achievements — streak milestones (3/7/30
+days), level milestones (5/10), and total-completions milestones (50/100).
+They unlock on their own as a side effect of logging, no setup needed; see
+the full catalog with `GET /api/badges`.
+
+**Quests** are one-off goals you define: hit a target number of completions
+(of one habit, or of any habit) and earn a one-time bonus XP payout. Only
+completions logged *after* the quest was created count toward it.
+
+Both can complete as a side effect of `POST /api/log` — its response
+includes `newlyEarnedBadges` and `newlyCompletedQuests` arrays. In a
+Shortcut, check whether either array is non-empty and show an extra
+"🏆 Badge unlocked: \(name)!" or "🎯 Quest complete: \(name)!" notification
+when it is.
 
 ## Wiring up a Shortcut
 
@@ -105,3 +125,26 @@ traffic leaves your LAN.
 To deploy without Docker, just `npm install --omit=dev && npm start` on
 any host with Node 20+, setting `PORT`, `API_KEY`, and optionally `DB_PATH`
 via environment variables.
+
+### Fly.io (run these from your own machine, not this sandbox)
+
+A `fly.toml` is included and preconfigured for this app (port 3000, a
+persistent volume mounted at `/data`, scale-to-zero when idle). This
+sandbox's network policy blocks outbound requests to Fly.io's API, so run
+these yourself somewhere with normal internet access:
+
+```bash
+curl -L https://fly.io/install.sh | sh   # installs flyctl
+fly auth login                            # opens a browser to authenticate
+
+# Edit the `app = "..."` line in fly.toml to a name that isn't taken yet,
+# then from the repo root:
+fly apps create <your-app-name>
+fly volumes create life_gamification_data --region iad --size 1 -a <your-app-name>
+fly secrets set API_KEY=<a-long-random-string> -a <your-app-name>
+fly deploy -a <your-app-name>
+```
+
+`fly deploy` builds the `Dockerfile` and gives you a public URL at
+`https://<your-app-name>.fly.dev` — point your Shortcuts there. Redeploy
+after any code change with `fly deploy -a <your-app-name>` again.
